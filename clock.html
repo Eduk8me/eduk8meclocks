@@ -24,12 +24,13 @@
         body {
             background-color: var(--bg-color);
             margin: 0; /* Remove default margin */
-            padding: 0; /* Remove default padding */
+            padding: 0 10px; /* Remove default padding */
         }
         #clock {
             color: var(--clock-color);
             font-size: 16vw; /* Adjusted font size to fit AM/PM */
             font-family: var(--clock-font);
+            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
             position: absolute;
             top: 40%;
             left: 50%;
@@ -44,6 +45,7 @@
             color: var(--clock-color);
             font-size: 5vw; /* Adjust font size based on viewport width */
             font-family: var(--clock-font);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
             position: absolute;
             top: 60%;
             left: 50%;
@@ -161,6 +163,19 @@
             padding: 6px 10px;
             font-size: 0.85rem;
         }
+        .settings-footer {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+        .settings-footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+        }
+        .settings-footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
         @media (max-width: 640px) {
             #clock { font-size: 18vw; }
             #date { font-size: 6vw; }
@@ -217,9 +232,9 @@
                 <option value="long">Full Date</option>
             </select>
         </div>
-        <div class="settings-actions">
-            <span class="left">URL updates on change</span>
-            <button id="close-settings" type="button">Close</button>
+        <div class="settings-actions"></div>
+        <div class="settings-footer">
+            <a href="https://github.com/Eduk8me/clocks" target="_blank" rel="noopener">Powered by Eduk8.me Labs</a>
         </div>
     </div>
 
@@ -228,7 +243,6 @@
     <script>
         const settingsPanel = document.getElementById('settings-panel');
         const gearButton = document.getElementById('gear-button');
-        const closeSettings = document.getElementById('close-settings');
         const fontSelect = document.getElementById('font-select');
         const fontColorInput = document.getElementById('font-color');
         const bgColorInput = document.getElementById('bg-color');
@@ -279,7 +293,6 @@
         }
 
         gearButton.addEventListener('click', () => toggleSettings(!settingsPanel.classList.contains('open')));
-        closeSettings.addEventListener('click', () => toggleSettings(false));
         document.addEventListener('click', (event) => {
             if (!settingsPanel.contains(event.target) && !gearButton.contains(event.target)) {
                 toggleSettings(false);

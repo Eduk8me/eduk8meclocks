@@ -23,6 +23,7 @@
             color: white; /* Default color */
             font-family: 'Roboto Mono', monospace;
             margin: 0;
+            padding: 0 10px;
             text-align: center;
             transition: background-color 0.25s ease, color 0.25s ease, font-family 0.25s ease;
         }
@@ -180,28 +181,20 @@
             accent-color: var(--panel-accent);
         }
         .settings-actions {
+            display: none;
+        }
+        .settings-footer {
             margin-top: 12px;
-            display: flex;
-            gap: 10px;
+            text-align: center;
+            font-size: 12px;
         }
-        .settings-actions button {
-            flex: 1;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.12);
+        .settings-footer a {
+            color: var(--panel-muted);
+            text-decoration: none;
+        }
+        .settings-footer a:hover {
             color: var(--panel-text);
-            padding: 9px 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .settings-actions button.primary {
-            background: var(--panel-accent);
-            border-color: transparent;
-            color: #02111a;
-        }
-        .settings-actions button:hover {
-            filter: brightness(1.05);
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -256,9 +249,8 @@
                 </select>
             </div>
         </div>
-        <div class="settings-actions">
-            <button id="settings-reset" type="button">Reset</button>
-            <button id="settings-apply" class="primary" type="button">Apply</button>
+        <div class="settings-footer">
+            <a href="https://github.com/Eduk8me/clocks" target="_blank" rel="noopener">Powered by Eduk8.me Labs</a>
         </div>
     </div>
     <div class="settings-corner" aria-hidden="true">
@@ -569,7 +561,7 @@
             const dateOnly = dateValue && !timeValue;
             return {
                 endDateTime: normalizeDateTimeInput(rawDateTime),
-                message: settingMessage.value.trim(),
+                message: settingMessage.value,
                 format: settingFormat.value,
                 showTime: settingShowTime.checked,
                 textColor: settingTextColor.value,
@@ -588,28 +580,36 @@
 
         settingsToggle.addEventListener('click', () => toggleSettingsPanel());
 
-        document.getElementById('settings-apply').addEventListener('click', () => {
+        function applySettingsInstantly() {
             const settings = getSettingsFromForm();
             updateQueryFromSettings(settings);
             updateFromSettings(settings);
             syncForm(settings);
-            toggleSettingsPanel(false);
+        }
+
+        [
+            settingDate,
+            settingClock,
+            settingMessage,
+            settingFormat,
+            settingShowTime,
+            settingTextColor,
+            settingBgColor,
+            settingFont
+        ].forEach((input) => {
+            input.addEventListener('input', applySettingsInstantly);
+            input.addEventListener('change', applySettingsInstantly);
         });
 
-        document.getElementById('settings-reset').addEventListener('click', () => {
-            const defaults = {
-                endDateTime: '',
-                message: '',
-                format: 'default',
-                showTime: true,
-                textColor: '#ffffff',
-                bgColor: '#000000',
-                fontFamily: "'Roboto Mono', monospace",
-                dateOnly: false
-            };
-            syncForm(defaults);
-            updateQueryFromSettings(defaults);
-            updateFromSettings(defaults);
+        document.addEventListener('click', (event) => {
+            if (!settingsPanel.classList.contains('open')) {
+                return;
+            }
+            if (settingsPanel.contains(event.target) || settingsToggle.contains(event.target)) {
+                return;
+            }
+            applySettingsInstantly();
+            toggleSettingsPanel(false);
         });
 
         const initialSettings = getSettingsFromQuery();
