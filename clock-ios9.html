@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock for iOS 9</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Roboto+Mono:wght@400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: "Comic Mono";
+            src: url("https://files.eduk8.me/resources/ComicMono.woff2") format("woff2"),
+                 url("https://files.eduk8.me/resources/ComicMono.woff") format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "American Captain";
+            src: url("https://files.eduk8.me/resources/AmericanCaptain.woff") format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            background: #000000;
+            color: #00ff66;
+            font-family: "Fira Mono", monospace;
+            margin: 0;
+            overflow: hidden;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+        }
+        #clock {
+            color: #00ff66;
+            font-family: "Fira Mono", monospace;
+            font-size: 16vw;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            left: 0;
+            line-height: 1;
+            margin: 0;
+            position: absolute;
+            right: 0;
+            text-align: center;
+            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+            top: 34%;
+            -webkit-transform: translateY(-50%);
+            transform: translateY(-50%);
+            white-space: nowrap;
+        }
+        #date {
+            color: #00ff66;
+            font-family: "Fira Mono", monospace;
+            font-size: 5vw;
+            font-variant-numeric: tabular-nums;
+            font-weight: 400;
+            left: 0;
+            line-height: 1.15;
+            margin: 0;
+            position: absolute;
+            right: 0;
+            text-align: center;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+            top: 58%;
+            -webkit-transform: translateY(-50%);
+            transform: translateY(-50%);
+        }
+        body.no-date #clock {
+            top: 50%;
+        }
+        body.no-date #date {
+            display: none;
+        }
+        .time {
+            display: inline-block;
+        }
+        .digit {
+            display: inline-block;
+            text-align: center;
+            width: 0.5em;
+        }
+        .ampm {
+            display: inline-block;
+            font-size: 6vw;
+            margin-left: 0.12em;
+            vertical-align: super;
+        }
+        #settings-button {
+            background: rgba(0, 0, 0, 0.48);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 22px;
+            bottom: 14px;
+            color: #ffffff;
+            cursor: pointer;
+            height: 44px;
+            line-height: 42px;
+            opacity: 0.55;
+            padding: 0;
+            position: fixed;
+            right: 14px;
+            text-align: center;
+            width: 44px;
+            z-index: 30;
+        }
+        #settings-button:hover,
+        #settings-button:focus {
+            opacity: 1;
+        }
+        #settings-button svg {
+            height: 22px;
+            margin-top: 10px;
+            width: 22px;
+        }
+        #settings-panel {
+            background: rgba(15, 15, 15, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 12px;
+            bottom: 68px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+            color: #ffffff;
+            display: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            max-width: 320px;
+            padding: 16px;
+            position: fixed;
+            right: 14px;
+            width: 82%;
+            z-index: 40;
+        }
+        #settings-panel.open {
+            display: block;
+        }
+        #settings-panel h1 {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0 0 12px 0;
+        }
+        .settings-row {
+            clear: both;
+            margin: 0 0 10px 0;
+            min-height: 34px;
+        }
+        .settings-row label {
+            display: block;
+            float: left;
+            font-size: 14px;
+            line-height: 34px;
+            margin: 0;
+            width: 38%;
+        }
+        .settings-row select,
+        .settings-row input {
+            -webkit-appearance: none;
+            background: #0f0f0f;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 8px;
+            box-sizing: border-box;
+            color: #ffffff;
+            display: block;
+            float: right;
+            font-family: inherit;
+            font-size: 14px;
+            height: 34px;
+            padding: 6px 8px;
+            width: 58%;
+        }
+        .settings-row select {
+            background-image: linear-gradient(45deg, transparent 50%, #ffffff 50%), linear-gradient(135deg, #ffffff 50%, transparent 50%);
+            background-position: right 14px center, right 8px center;
+            background-repeat: no-repeat;
+            background-size: 6px 6px, 6px 6px;
+            padding-right: 28px;
+        }
+        .settings-footer {
+            clear: both;
+            font-size: 12px;
+            padding-top: 6px;
+            text-align: center;
+        }
+        .settings-footer a {
+            color: rgba(255, 255, 255, 0.72);
+            text-decoration: none;
+        }
+        .settings-footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        @media (max-width: 640px) {
+            #clock {
+                font-size: 18vw;
+            }
+            #date {
+                font-size: 6vw;
+            }
+            .ampm {
+                font-size: 7vw;
+            }
+        }
+        @media (max-height: 360px) {
+            #clock {
+                top: 38%;
+            }
+            #date {
+                top: 68%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="clock"></h1>
+    <h2 id="date"></h2>
+
+    <button id="settings-button" type="button" aria-label="Open settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19.4 13.5c0.1-0.5 0.1-1 0.1-1.5s0-1-0.1-1.5l2.1-1.6-2-3.5-2.5 1c-0.8-0.6-1.6-1.1-2.6-1.4L14 2.3h-4l-0.4 2.7c-0.9 0.3-1.8 0.8-2.6 1.4l-2.5-1-2 3.5 2.1 1.6C4.5 11 4.5 11.5 4.5 12s0 1 0.1 1.5l-2.1 1.6 2 3.5 2.5-1c0.8 0.6 1.6 1.1 2.6 1.4l0.4 2.7h4l0.4-2.7c0.9-0.3 1.8-0.8 2.6-1.4l2.5 1 2-3.5-2.1-1.6zM12 15.4c-1.9 0-3.4-1.5-3.4-3.4s1.5-3.4 3.4-3.4 3.4 1.5 3.4 3.4-1.5 3.4-3.4 3.4z" fill="currentColor"></path>
+        </svg>
+    </button>
+
+    <div id="settings-panel" role="dialog" aria-labelledby="settings-title">
+        <h1 id="settings-title">Settings</h1>
+        <div class="settings-row">
+            <label for="font-select">Font</label>
+            <select id="font-select">
+                <option value='"Fira Mono", monospace'>Fira Mono</option>
+                <option value='"JetBrains Mono", monospace'>JetBrains Mono</option>
+                <option value='"Roboto Mono", monospace'>Roboto Mono</option>
+                <option value='"Ubuntu Mono", monospace'>Ubuntu Mono</option>
+                <option value='"Comic Mono", "Comic Sans MS", monospace'>Comic Sans Mono</option>
+                <option value='"American Captain", Impact, "Arial Black", sans-serif'>American Captain</option>
+                <option value='Menlo, Consolas, monospace'>System Mono</option>
+            </select>
+        </div>
+        <div class="settings-row">
+            <label for="font-color">Font color</label>
+            <input id="font-color" type="text" value="#00ff66" autocapitalize="off" autocomplete="off">
+        </div>
+        <div class="settings-row">
+            <label for="bg-color">Background</label>
+            <input id="bg-color" type="text" value="#000000" autocapitalize="off" autocomplete="off">
+        </div>
+        <div class="settings-row">
+            <label for="hour-format">Time format</label>
+            <select id="hour-format">
+                <option value="12">12-hour</option>
+                <option value="24">24-hour</option>
+            </select>
+        </div>
+        <div class="settings-row">
+            <label for="date-format">Date format</label>
+            <select id="date-format">
+                <option value="none">No Date</option>
+                <option value="mdy">M/D/YYYY</option>
+                <option value="dmy">D/M/YYYY</option>
+                <option value="ymd">YYYY-MM-DD</option>
+                <option value="long">Full Date</option>
+            </select>
+        </div>
+        <div class="settings-footer">
+            <a href="https://github.com/Eduk8me/clocks" target="_blank" rel="noopener">Powered by Eduk8.me Labs</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var clockEl = document.getElementById('clock');
+            var dateEl = document.getElementById('date');
+            var settingsPanel = document.getElementById('settings-panel');
+            var settingsButton = document.getElementById('settings-button');
+            var fontSelect = document.getElementById('font-select');
+            var fontColorInput = document.getElementById('font-color');
+            var bgColorInput = document.getElementById('bg-color');
+            var hourFormatSelect = document.getElementById('hour-format');
+            var dateFormatSelect = document.getElementById('date-format');
+
+            function pad2(value) {
+                value = String(value);
+                return value.length < 2 ? '0' + value : value;
+            }
+
+            function encode(value) {
+                return encodeURIComponent(value);
+            }
+
+            function decode(value) {
+                try {
+                    return decodeURIComponent(String(value).replace(/\+/g, ' '));
+                } catch (error) {
+                    return value;
+                }
+            }
+
+            function parseQuery() {
+                var query = window.location.search;
+                var settings = {};
+                var pairs;
+                var part;
+                var index;
+                var key;
+                var value;
+                var i;
+
+                if (query.charAt(0) === '?') {
+                    query = query.substring(1);
+                }
+                if (!query) {
+                    return settings;
+                }
+
+                pairs = query.split('&');
+                for (i = 0; i < pairs.length; i += 1) {
+                    part = pairs[i];
+                    index = part.indexOf('=');
+                    if (index === -1) {
+                        key = decode(part);
+                        value = '';
+                    } else {
+                        key = decode(part.substring(0, index));
+                        value = decode(part.substring(index + 1));
+                    }
+                    settings[key] = value;
+                }
+                return settings;
+            }
+
+            function isColor(value) {
+                return /^#[0-9a-fA-F]{6}$/.test(value);
+            }
+
+            function setClassName(element, className, enabled) {
+                var padded = ' ' + element.className + ' ';
+                var hasClass = padded.indexOf(' ' + className + ' ') !== -1;
+
+                if (enabled && !hasClass) {
+                    element.className = element.className ? element.className + ' ' + className : className;
+                } else if (!enabled && hasClass) {
+                    element.className = padded.replace(' ' + className + ' ', ' ').replace(/^\s+|\s+$/g, '');
+                }
+            }
+
+            function isPanelOpen() {
+                return (' ' + settingsPanel.className + ' ').indexOf(' open ') !== -1;
+            }
+
+            function toggleSettings(open) {
+                setClassName(settingsPanel, 'open', open);
+                settingsButton.setAttribute('aria-label', open ? 'Close settings' : 'Open settings');
+            }
+
+            function applySettings() {
+                var font = fontSelect.value;
+                var fontColor = fontColorInput.value;
+                var bgColor = bgColorInput.value;
+                var dateFormat = dateFormatSelect.value;
+
+                if (!isColor(fontColor)) {
+                    fontColor = '#00ff66';
+                    fontColorInput.value = fontColor;
+                }
+                if (!isColor(bgColor)) {
+                    bgColor = '#000000';
+                    bgColorInput.value = bgColor;
+                }
+
+                document.body.style.backgroundColor = bgColor;
+                document.body.style.color = fontColor;
+                clockEl.style.color = fontColor;
+                dateEl.style.color = fontColor;
+                clockEl.style.fontFamily = font;
+                dateEl.style.fontFamily = font;
+                setClassName(document.body, 'no-date', dateFormat === 'none');
+            }
+
+            function updateUrlFromSettings() {
+                var query = [
+                    'font=' + encode(fontSelect.value),
+                    'fg=' + encode(fontColorInput.value),
+                    'bg=' + encode(bgColorInput.value),
+                    'h=' + encode(hourFormatSelect.value),
+                    'd=' + encode(dateFormatSelect.value)
+                ].join('&');
+                var newUrl = window.location.pathname + '?' + query;
+
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, '', newUrl);
+                } else {
+                    window.location.hash = query;
+                }
+            }
+
+            function loadSettings() {
+                var params = parseQuery();
+
+                if (params.font) {
+                    fontSelect.value = params.font;
+                }
+                if (params.fg) {
+                    fontColorInput.value = params.fg;
+                }
+                if (params.bg) {
+                    bgColorInput.value = params.bg;
+                }
+                if (params.h === '12' || params.h === '24') {
+                    hourFormatSelect.value = params.h;
+                }
+                if (params.d === 'none' || params.d === 'mdy' || params.d === 'dmy' || params.d === 'ymd' || params.d === 'long') {
+                    dateFormatSelect.value = params.d;
+                }
+            }
+
+            function wrapDigits(text) {
+                return String(text).replace(/\d/g, function (digit) {
+                    return '<span class="digit">' + digit + '</span>';
+                });
+            }
+
+            function formatLongDate(now) {
+                var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+                return days[now.getDay()] + ' - ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+            }
+
+            function formatDate(now) {
+                var month = now.getMonth() + 1;
+                var day = now.getDate();
+                var year = now.getFullYear();
+                var format = dateFormatSelect.value;
+
+                if (format === 'mdy') {
+                    return month + '/' + day + '/' + year;
+                }
+                if (format === 'dmy') {
+                    return day + '/' + month + '/' + year;
+                }
+                if (format === 'ymd') {
+                    return year + '-' + pad2(month) + '-' + pad2(day);
+                }
+                if (format === 'none') {
+                    return '';
+                }
+                return formatLongDate(now);
+            }
+
+            function updateClock() {
+                var now = new Date();
+                var hours = now.getHours();
+                var minutes = pad2(now.getMinutes());
+                var seconds = pad2(now.getSeconds());
+                var is24Hour = hourFormatSelect.value === '24';
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                var hoursText;
+                var timeText;
+                var dateText;
+
+                if (is24Hour) {
+                    hoursText = pad2(hours);
+                } else {
+                    hours = hours % 12;
+                    hoursText = String(hours ? hours : 12);
+                }
+
+                timeText = hoursText + ':' + minutes + ':' + seconds;
+                dateText = formatDate(now);
+                clockEl.innerHTML = is24Hour
+                    ? '<span class="time">' + wrapDigits(timeText) + '</span>'
+                    : '<span class="time">' + wrapDigits(timeText) + '</span> <span class="ampm">' + ampm + '</span>';
+                dateEl.innerHTML = dateText ? wrapDigits(dateText) : '';
+                setClassName(document.body, 'no-date', dateFormatSelect.value === 'none');
+            }
+
+            function targetIsInside(target, container) {
+                while (target) {
+                    if (target === container) {
+                        return true;
+                    }
+                    target = target.parentNode;
+                }
+                return false;
+            }
+
+            function onSettingsChange() {
+                applySettings();
+                updateUrlFromSettings();
+                updateClock();
+            }
+
+            function onColorKeyup() {
+                if (isColor(fontColorInput.value) && isColor(bgColorInput.value)) {
+                    onSettingsChange();
+                }
+            }
+
+            settingsButton.onclick = function (event) {
+                if (event && event.stopPropagation) {
+                    event.stopPropagation();
+                }
+                toggleSettings(!isPanelOpen());
+            };
+
+            document.onclick = function (event) {
+                event = event || window.event;
+                var target = event.target || event.srcElement;
+
+                if (!targetIsInside(target, settingsPanel) && !targetIsInside(target, settingsButton)) {
+                    toggleSettings(false);
+                }
+            };
+
+            fontSelect.onchange = onSettingsChange;
+            fontColorInput.onchange = onSettingsChange;
+            fontColorInput.onkeyup = onColorKeyup;
+            bgColorInput.onchange = onSettingsChange;
+            bgColorInput.onkeyup = onColorKeyup;
+            hourFormatSelect.onchange = onSettingsChange;
+            dateFormatSelect.onchange = onSettingsChange;
+
+            loadSettings();
+            applySettings();
+            updateClock();
+            setInterval(updateClock, 1000);
+        }());
+    </script>
+</body>
+</html>
